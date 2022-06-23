@@ -15,19 +15,34 @@ try
         string textFromFile = Encoding.Default.GetString(buffer);
         Console.WriteLine($"Текст из файла: {textFromFile}");
 
-        var groups = SwimParts(textFromFile, 3)
-                .Where(str => str.All(ch => char.IsLetter(ch)))
-                .GroupBy(str => str);
+        var paragraphMarker = Environment.NewLine + Environment.NewLine;
+        var paragraphs = textFromFile.Split(new[] { paragraphMarker },
+                                        StringSplitOptions.RemoveEmptyEntries);
 
-
-        Console.WriteLine(string.Join
+        await Task.Run(() =>
+        {
+            paragraphs.AsParallel()
+                .WithDegreeOfParallelism(10)
+                .ForAll(paragraph =>
+                {
+                    var words = paragraph.Split(new[] { ' ' },
+                                  StringSplitOptions.RemoveEmptyEntries)
+                                 .Select(w => w.Trim());
+                    var groups = SwimParts(textFromFile, 3)
+                        .Where(str => str.All(ch => char.IsLetter(ch)))
+                        .GroupBy(str => str);
+                    Console.WriteLine(string.Join
             (
                 Environment.NewLine,
                 groups.OrderByDescending(gr => gr.Count()).Take(10).Select(gr => $"\"{gr.Key}\" встретилось {gr.Count()} раз")
             ));
-    }   
+                });
+        });
+
+
+    }
 }
-catch(Exception ex)
+catch (Exception ex)
 {
     Console.WriteLine(ex.Message);
 }
