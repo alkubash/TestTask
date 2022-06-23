@@ -18,7 +18,7 @@ try
         var paragraphMarker = Environment.NewLine + Environment.NewLine;
         var paragraphs = textFromFile.Split(new[] { paragraphMarker },
                                         StringSplitOptions.RemoveEmptyEntries);
-
+        var countParagraphs = 10/paragraphs.Length;
         await Task.Run(() =>
         {
             paragraphs.AsParallel()
@@ -28,15 +28,16 @@ try
                     var words = paragraph.Split(new[] { ' ' },
                                   StringSplitOptions.RemoveEmptyEntries)
                                  .Select(w => w.Trim());
-                    var groups = SwimParts(textFromFile, 3)
+                    var groups = SwimParts(paragraph, 3)
                         .Where(str => str.All(ch => char.IsLetter(ch)))
                         .GroupBy(str => str);
                     Console.WriteLine(string.Join
             (
                 Environment.NewLine,
-                groups.OrderByDescending(gr => gr.Count()).Take(10).Select(gr => $"\"{gr.Key}\" встретилось {gr.Count()} раз")
+                groups.OrderByDescending(gr => gr.Count()).Take(countParagraphs).Select(gr => $"\"{gr.Key}\" встретилось {gr.Count()} раз")
             ));
                 });
+            
         });
 
 
